@@ -1,9 +1,8 @@
 import React from "react";
 import "./Board.css";
 
-function Board() {
-  return;
-  <div></div>;
+function Board(room: number) {
+  return <div className="board"></div>;
 }
 
 export default Board;
