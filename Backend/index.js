@@ -20,10 +20,12 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
     console.log('a user connected');
     socket.broadcast.emit('user connected');
+
     socket.on('disconnect', () => {
         console.log('user disconnected');
         socket.broadcast.emit('user disconnected');
     });
+
     socket.on('message', (msg) => {
         console.log('message: ' + msg);
         io.emit('message', msg);
@@ -36,9 +38,14 @@ io.on('connection', (socket) => {
 
     socket.on('join', (room) => {
         console.log('join room: ' + room);
+        if (io.sockets.adapter.rooms.get(room)?.size >= 5) {
+            console.log(`Room ${room} is full.`);
+            return;
+        }
         socket.join(room);
         io.to(room).emit('join', room);
     });
+
     socket.on('leave', (room) => {
         console.log('leave room: ' + room);
         socket.leave(room);
