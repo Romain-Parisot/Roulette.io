@@ -37,6 +37,11 @@ io.on("connection", (socket) => {
     io.to(room).emit("message", msg);
   });
 
+  socket.on("users", (room, users) => {
+    console.log("room: " + room + " users: " + users);
+    io.to(room).emit("users", users);
+  });
+
   socket.on("join", (room) => {
     console.log("join room: " + room);
     if (io.sockets.adapter.rooms.get(room)?.size >= 5) {
@@ -53,6 +58,16 @@ io.on("connection", (socket) => {
     io.to(room).emit("leave", room);
   });
 });
+
+// app.get("/room/:roomName", (req, res) => {
+//   const roomName = req.params.roomName;
+//   const room = io.sockets.adapter.rooms.get(roomName);
+//   if (!room) {
+//     res.json({ room: roomName, users: [] });
+//     return;
+//   }
+//   res.json({ room: roomName, users: Array.from(room) });
+// });
 
 server.listen(PORT, () => {
   console.log("Server ip : http://" + ip.address() + ":" + PORT);

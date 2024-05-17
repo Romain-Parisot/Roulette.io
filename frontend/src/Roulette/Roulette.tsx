@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Roulette.css";
 import RouletteImages from "../images/american-roulette-table-and-wheel.jpg";
 
@@ -9,13 +9,9 @@ function Roulette() {
   });
   const [number, setNumber] = useState(0);
   const [stack, setStack] = useState(1000);
+  const [counter, setCounter] = useState<number>(10);
 
-  const placeBet = (newBet: number | string, amount: number) => {
-    if (amount > stack) {
-      return;
-    }
-    setBet({ number: newBet, amount: amount });
-  };
+  let counterInterval: NodeJS.Timeout;
 
   const spinWheel = () => {
     const newNumber = Math.floor(Math.random() * 36);
@@ -33,8 +29,28 @@ function Roulette() {
     }
   };
 
+  useEffect(() => {
+    if (counter === 0) {
+      spinWheel();
+      setCounter(10);
+    }
+    counterInterval = setInterval(() => {
+      setCounter((prevCounter) => prevCounter - 1);
+    }, 1000);
+
+    return () => clearInterval(counterInterval); // Cleanup on unmount
+  }, [bet, counter]);
+
+  const placeBet = (newBet: number | string, amount: number) => {
+    if (amount > stack) {
+      return;
+    }
+    setBet({ number: newBet, amount: amount });
+  };
+
   return (
     <div className="board">
+      {counter !== null && <div>Spinning in {counter} seconds...</div>}
       <div>The number is: {number}</div>
       <div>Your stack: {stack}</div>
       <div className="betOverlay">
@@ -50,27 +66,25 @@ function Roulette() {
           </div>
         ))}
         <div>
+          {"Even"}
           <input
             type="number"
             min="0"
             onChange={(e) => placeBet("even", Number(e.target.value))}
           />
-          <button onClick={() => placeBet("even", bet.amount)}>Even</button>
         </div>
         <div>
+          {"Odd"}
           <input
             type="number"
             min="0"
             onChange={(e) => placeBet("odd", Number(e.target.value))}
           />
-          <button onClick={() => placeBet("odd", bet.amount)}>Odd</button>
         </div>
         {/* Add more buttons for other bets */}
       </div>
-      <button onClick={spinWheel}>Spin the wheel</button>
-
       <div className="boardimage">
-        <img src={RouletteImages} />
+        <img src={RouletteImages} alt="Roulette Table" />
       </div>
     </div>
   );
