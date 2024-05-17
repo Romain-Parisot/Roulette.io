@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./Roulette.css";
-import RouletteImages from "../images/american-roulette-table-and-wheel.jpg";
+
+// Import socket.io-client
+import io from "socket.io-client";
+
+const BACKEND_URL = "http://localhost:3000"; // Update this URL to match your backend server
 
 function Roulette() {
   const [bet, setBet] = useState<{ number: number | string; amount: number }>({
@@ -14,15 +18,48 @@ function Roulette() {
   // Use useRef to persist the interval across renders
   const counterIntervalRef = useRef<NodeJS.Timeout>();
 
-  const spinWheel = () => {
-    const newNumber = Math.floor(Math.random() * 36);
-    setNumber(newNumber);
+  // Create a ref to hold the socket connection
+  const socketRef = useRef();
 
-    if (bet.number === newNumber) {
+  // Function to initialize the socket connection
+  const initSocket = () => {
+    socketRef.current = io(BACKEND_URL);
+    socketRef.current.on("rouletteSpinResult", (newNumber) => {
+      console.log("rouletteSpinResult");
+      setNumber(newNumber);
+    });
+    socketRef.current.on("roomJoined", (roomName) => {
+      console.log(`Joined room: ${roomName}`);
+    });
+    socketRef.current.emit("join", "Room1");
+
+    // Clean up the socket connection when the component unmounts
+    return () => {
+      socketRef.current.disconnect();
+    };
+  };
+
+  useEffect(() => {
+    initSocket();
+
+    // Cleanup function to disconnect the socket when the component unmounts
+    return () => {
+      socketRef.current.disconnect();
+    };
+  }, []);
+
+  const spinWheel = () => {
+    socketRef.current.emit("spinWheel", "Room1");
+    socketRef.current.on("rouletteSpinResult", (newNumber) => {
+      console.log("rouletteSpinResult", newNumber);
+      setNumber(newNumber);
+    });
+
+    if (bet.number === number) {
       setStack((prevStack) => prevStack + bet.amount * 36);
     } else if (
-      (bet.number === "even" && newNumber % 2 === 0) ||
-      (bet.number === "odd" && newNumber % 2 !== 0)
+      (bet.number === "even" && number % 2 === 0) ||
+      (bet.number === "odd" && number % 2 !== 0)
     ) {
       setStack((prevStack) => prevStack + bet.amount * 2);
     } else {
@@ -34,10 +71,14 @@ function Roulette() {
   useEffect(() => {
     if (counter === 0) {
       spinWheel();
-      setCounter(10);
+      socketRef.current.emit("updateCounter", "Room1", counter);
     }
     counterIntervalRef.current = setInterval(() => {
-      setCounter((prevCounter) => prevCounter - 1);
+      socketRef.current.emit("updateCounter", "Room1", counter);
+      socketRef.current.on("counterUpdated", (counter) => {
+        console.log("counterUpdated", counter);
+        setCounter(counter);
+      });
     }, 1000);
 
     return () => clearInterval(counterIntervalRef.current);
@@ -102,15 +143,11 @@ function Roulette() {
           {"Odd"}
           <input
             type="number"
-            min="0"
             onChange={(e) => placeBet("odd", Number(e.target.value))}
           />
         </div>
         {/* Add more buttons for other bets */}
       </div>
-      {/* <div className="boardimage">
-        <img src={RouletteImages} alt="Roulette Table" />
-      </div> */}
     </div>
   );
 }
