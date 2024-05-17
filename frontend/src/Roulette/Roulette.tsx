@@ -143,7 +143,7 @@ function Roulette() {
       setBets((prevBets) => {
         const newBets = [...prevBets];
         // Increment the existing bet amount by the amount you want to bet
-        newBets[existingBetIndex].amount += betAmount / 2;
+        newBets[existingBetIndex].amount += betAmount;
         return newBets;
       });
     } else {
