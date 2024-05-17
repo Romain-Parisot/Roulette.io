@@ -25,17 +25,19 @@ io.on("connection", (socket) => {
   console.log("a user connected");
   socket.broadcast.emit("user connected");
 
+  socket.on("sendMessage", (room, message) => {
+    console.log(`Message received: ${message} in room ${room}`);
+    io.to(room).emit("receiveMessage", message);
+    console.log("message: " + message);
+  });
+
   socket.on("updateCounter", (room, counter) => {
-    console.log("hello");
     if (counter === 0) {
       counter = 10;
     } else {
       counter = counter - 1;
-      console.log("counter: " + counter);
     }
-    console.log(`Updating counter in room ${room} to ${counter}`);
     io.to(room).emit("counterUpdated", counter);
-    console.log("emit done");
   });
 
   socket.on("disconnect", () => {
@@ -43,27 +45,44 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("user disconnected");
   });
 
-  socket.on("join", (room) => {
-    console.log("join room: " + room);
+  // Modify the join handler to accept the username
+  socket.on("join", (room, username) => {
+    console.log("User joining room:", username);
     if (io.sockets.adapter.rooms.get(room)?.size >= 5) {
       console.log(`Room ${room} is full.`);
+      return;
+    }
+    if(usersInRooms[room]?.find(user => user.username === username)) {
+      console.log(`Username ${username} is already taken in room ${room}.`);
+      return;
+    }
+    if(username === undefined) {
+      console.log("Username is undefined.");
       return;
     }
     socket.join(room);
     console.log("room: " + room);
     socket.emit("roomJoined", room);
+  
     // Emit the list of users in the room to the newly joined user
-    const users = usersInRooms[room] ? usersInRooms[room].slice() : [];
+    const users = usersInRooms[room]?.slice() || [];
     io.to(room).emit("usersList", users);
-
+  
     // Update the global usersInRooms object
     if (!usersInRooms[room]) {
-      usersInRooms[room] = [socket.id];
+      usersInRooms[room] = [{ id: socket.id, username }];
     } else {
-      usersInRooms[room].push(socket.id);
+      usersInRooms[room].push({ id: socket.id, username });
     }
-
-    io.to(room).emit("join", room);
+  
+    // Emit the updated list of users to all users in the room
+    io.to(room).emit("updatedUsersList", usersInRooms[room]);
+  
+    // Handle requests to get the current list of users in a room
+    socket.on("getUsersList", (room) => {
+      const users = usersInRooms[room]?.slice() || [];
+      socket.emit("usersList", users);
+    });
   });
 
   socket.on("spinWheel", (room) => {

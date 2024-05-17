@@ -16,38 +16,49 @@ function Roulette() {
   const [number, setNumber] = useState(0);
   const [stack, setStack] = useState(1000);
   const [counter, setCounter] = useState<number>(10);
+  const [messages, setMessages] = useState<string[]>([]);
 
-  // Use useRef to persist the interval across renders
   const counterIntervalRef = useRef<NodeJS.Timeout>();
-
-  // Create a ref to hold the socket connection
   const socketRef = useRef<any>();
+
+  useEffect(() => {}, []);
 
   // Function to initialize the socket connection
   const initSocket = () => {
+    const usernameInput = prompt("Enter your username:");
     socketRef.current = io(BACKEND_URL);
-    socketRef.current.on("rouletteSpinResult", (newNumber: number) => {
-      console.log("rouletteSpinResult");
-      setNumber(newNumber);
-    });
-    socketRef.current.on("roomJoined", (roomName: string) => {
-      console.log(`Joined room: ${roomName}`);
-    });
-    socketRef.current.emit("join", roomName);
+    if (usernameInput !== undefined) {
+      socketRef.current.emit("join", roomName, usernameInput);
+      socketRef.current.on("rouletteSpinResult", (newNumber: number) => {
+        console.log("rouletteSpinResult");
+        setNumber(newNumber);
+      });
+      socketRef.current.on("roomJoined", (roomName: string) => {
+        console.log(`Joined room: ${roomName}`);
+      });
 
+      // Listen for the "usersList" event to log the users in the room
+      socketRef.current.on("usersList", (users: string[]) => {
+        console.log("Current users in the room:", users);
+      });
+    }
     // Clean up the socket connection when the component unmounts
     return () => {
       socketRef.current.disconnect();
     };
   };
 
+  // Inside Roulette.tsx
+
   useEffect(() => {
     initSocket();
 
-    // Cleanup function to disconnect the socket when the component unmounts
-    return () => {
-      socketRef.current.disconnect();
-    };
+    // Add the listener for receiving messages here
+    socketRef.current.on("receiveMessage", (message: string) => {
+      console.log("yo");
+      console.log("receiveMessage", message);
+      setMessages((prevMessages) => [...prevMessages, message]);
+    });
   }, []);
 
   const spinWheel = () => {
@@ -132,6 +143,10 @@ function Roulette() {
     }, 1000);
     return () => clearInterval(intervalId); // Clear interval on cleanup
   }, [betAmount]); // Depend on betAmount so it updates correctly
+
+  const sendMessage = (room: string, message: string) => {
+    socketRef.current.emit("sendMessage", room, message);
+  };
 
   return (
     <div className="board">
