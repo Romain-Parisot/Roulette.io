@@ -41,6 +41,13 @@ function Roulette() {
       socketRef.current.on("usersList", (users: string[]) => {
         console.log("Current users in the room:", users);
       });
+
+      // Add the listener for receiving messages here
+      socketRef.current.on("receiveMessage", (message: string) => {
+        console.log("yo");
+        console.log("receiveMessage", message);
+        setMessages((prevMessages) => [...prevMessages, message]);
+      });
     }
     // Clean up the socket connection when the component unmounts
     return () => {
@@ -52,13 +59,6 @@ function Roulette() {
 
   useEffect(() => {
     initSocket();
-
-    // Add the listener for receiving messages here
-    socketRef.current.on("receiveMessage", (message: string) => {
-      console.log("yo");
-      console.log("receiveMessage", message);
-      setMessages((prevMessages) => [...prevMessages, message]);
-    });
   }, []);
 
   const betsRef = useRef(bets);
