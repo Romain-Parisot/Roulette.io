@@ -57,6 +57,7 @@
   display: grid;
   grid-template-columns: repeat(13, 1fr);
   grid-template-rows: repeat(3, 1fr);
+  position: relative;
 }
 
 .rightOverlay {
@@ -83,6 +84,7 @@
   height: 50px;
   box-sizing: border-box;
   border: 1px solid white;
+  cursor: pointer;
 }
 
 .greencell {
@@ -94,6 +96,37 @@
   height: 150px;
   grid-row: 1 / 4;
   box-sizing: border-box;
-
   border: 1px solid white;
+  cursor: pointer;
+}
+
+.token {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgb(167, 164, 23);
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.tokenOverlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+
+.token2 {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgb(167, 164, 23);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
 }

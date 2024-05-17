@@ -7,12 +7,12 @@ import io from "socket.io-client";
 
 const BACKEND_URL = "http://localhost:3000"; // Update this URL to match your backend server
 
+type Bet = { number: number | string; amount: number };
+
 function Roulette() {
   let { roomName } = useParams<{ roomName?: string }>();
-  const [bet, setBet] = useState<{ number: number | string; amount: number }>({
-    number: 0,
-    amount: 0,
-  });
+  const [bets, setBets] = useState<Bet[]>([]);
+  const [betAmount, setBetAmount] = useState<undefined | number>(undefined);
   const [number, setNumber] = useState(0);
   const [stack, setStack] = useState(1000);
   const [counter, setCounter] = useState<number>(10);
@@ -55,19 +55,21 @@ function Roulette() {
     socketRef.current.on("rouletteSpinResult", (newNumber: number) => {
       console.log("rouletteSpinResult", newNumber);
       setNumber(newNumber);
-    });
 
-    if (bet.number === number) {
-      setStack((prevStack) => prevStack + bet.amount * 36);
-    } else if (
-      (bet.number === "even" && number % 2 === 0) ||
-      (bet.number === "odd" && number % 2 !== 0)
-    ) {
-      setStack((prevStack) => prevStack + bet.amount * 2);
-    } else {
-      // Ensure the stack doesn't go below 0
-      setStack((prevStack) => Math.max(prevStack - bet.amount, 0));
-    }
+      bets.forEach((bet) => {
+        if (bet.number === newNumber) {
+          setStack((prevStack) => prevStack + bet.amount * 36);
+        } else if (
+          (bet.number === "even" && newNumber % 2 === 0) ||
+          (bet.number === "odd" && newNumber % 2 !== 0)
+        ) {
+          setStack((prevStack) => prevStack + bet.amount * 2);
+        }
+      });
+
+      // Reset bets after spinning the wheel
+      setBets([]);
+    });
   };
 
   useEffect(() => {
@@ -78,31 +80,58 @@ function Roulette() {
     counterIntervalRef.current = setInterval(() => {
       socketRef.current.emit("updateCounter", roomName, counter);
       socketRef.current.on("counterUpdated", (counter: number) => {
-        console.log("counterUpdated", counter);
         setCounter(counter);
       });
     }, 1000);
 
     return () => clearInterval(counterIntervalRef.current);
-  }, [bet, counter]);
+  }, [counter]);
 
-  const placeBet = (newBet: number | string, amount: number) => {
-    // Check if the stack is sufficient for the bet
-    if (stack < amount) {
-      // Show an alert if the stack is too low
-      window.alert("You do not have enough money.");
-      return;
-    }
-
-    // Proceed with placing the bet if the stack is sufficient
-    setBet({ number: newBet, amount: amount });
-  };
   function getColor(number: number) {
     const redNumbers = [
       1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36,
     ];
     return redNumbers.includes(number) ? "red" : "black";
   }
+
+  const handleCellClick = (number: number) => {
+    // Check if the user has enough stack to place the bet
+    if (betAmount === undefined || stack < betAmount) {
+      return;
+    }
+
+    // Find the index of the existing bet for the selected number
+    const existingBetIndex = bets.findIndex((bet) => bet.number === number);
+
+    if (existingBetIndex !== -1) {
+      // If the bet exists, update its amount
+      setBets((prevBets) => {
+        const newBets = [...prevBets];
+        // Increment the existing bet amount by the amount you want to bet
+        newBets[existingBetIndex].amount += betAmount / 2;
+        return newBets;
+      });
+    } else {
+      // If the bet does not exist, add a new one
+      setBets((prevBets) => [...prevBets, { number, amount: betAmount }]);
+    }
+
+    // Deduct the bet amount from the stack
+    setStack((prevStack) => prevStack - betAmount);
+  };
+
+  // Add a new function to handle clicking on a token
+  const handleTokenClick = (amount: number) => {
+    setBetAmount(amount);
+  };
+
+  // Fixed setInterval call
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      console.log("Bet amount: " + betAmount);
+    }, 1000);
+    return () => clearInterval(intervalId); // Clear interval on cleanup
+  }, [betAmount]); // Depend on betAmount so it updates correctly
 
   return (
     <div className="board">
@@ -111,61 +140,48 @@ function Roulette() {
       <div>Your stack: {stack}</div>
       <div className="parentOverlay">
         <div className="mainOverlay">
-          <div className="greencell">0</div>
+          <div className="greencell" onClick={() => handleCellClick(number)}>
+            0
+            {bets.find((bet) => bet.number === number) && (
+              <div className="token">
+                {bets.find((bet) => bet.number === number)?.amount || ""}
+              </div>
+            )}
+          </div>
+
           {Array.from({ length: 36 }, (_, i) => i + 1).map((number) => (
-            <div key={number} className={`cell ${getColor(number)}`}>
+            <div
+              key={number}
+              className={`cell ${getColor(number)}`}
+              onClick={() => handleCellClick(number)}
+            >
               {number}
+              {bets.find((bet) => bet.number === number) && (
+                <div className="token">
+                  {bets.find((bet) => bet.number === number)?.amount || ""}
+                </div>
+              )}
             </div>
           ))}
         </div>
         <div className="rightOverlay"></div>
       </div>
-      <div className="betOverlay">
-        Place your bet:
-        {[...Array(36)].map((_, i) => (
-          <div key={i}>
-            {i + 1}
-            <input
-              type="number"
-              min="0"
-              onChange={(e) => {
-                e.preventDefault(); // Prevent the default action
-
-                // Extract the current input value
-                const currentValue = Number(e.target.value);
-
-                // Check if the current value exceeds the stack
-                if (currentValue > stack) {
-                  // If it does, set the input value to the stack
-                  e.target.value = stack.toString();
-                }
-
-                // Proceed with the rest of your logic
-                if (stack >= currentValue) {
-                  placeBet(i + 1, currentValue);
-                } else {
-                  window.alert("You do not have enough money.");
-                }
-              }}
-            />
-          </div>
-        ))}
-        <div>
-          {"Even"}
-          <input
-            type="number"
-            min="0"
-            onChange={(e) => placeBet("even", Number(e.target.value))}
-          />
+      <div className="tokenOverlay">
+        <div className="token2" onClick={() => handleTokenClick(1)}>
+          1
         </div>
-        <div>
-          {"Odd"}
-          <input
-            type="number"
-            onChange={(e) => placeBet("odd", Number(e.target.value))}
-          />
+        <div className="token2" onClick={() => handleTokenClick(5)}>
+          5
         </div>
-        {/* Add more buttons for other bets */}
+        <div className="token2" onClick={() => handleTokenClick(10)}>
+          10
+        </div>
+        <div className="token2" onClick={() => handleTokenClick(50)}>
+          50
+        </div>
+        <div className="token2" onClick={() => handleTokenClick(100)}>
+          100
+        </div>
       </div>
     </div>
   );
