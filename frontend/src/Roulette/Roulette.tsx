@@ -5,7 +5,7 @@ import "./Roulette.css";
 // Import socket.io-client
 import io from "socket.io-client";
 
-const BACKEND_URL = "http://localhost:3000"; // Update this URL to match your backend server
+const BACKEND_URL = "https://roulette-io.onrender.com"; // Update this URL to match your backend server
 
 type Bet = { number: number | string; amount: number };
 
