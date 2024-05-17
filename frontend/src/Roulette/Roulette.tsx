@@ -109,64 +109,53 @@ function Roulette() {
     // Proceed with placing the bet if the stack is sufficient
     setBet({ number: newBet, amount: amount });
   };
+  function getColor(number: number) {
+    const redNumbers = [
+      1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36,
+    ];
+    return redNumbers.includes(number) ? "red" : "black";
+  }
 
   const sendMessage = (room: string, message: string) => {
     socketRef.current.emit("sendMessage", room, message);
   };
 
   return (
-    <>
-      <div className="board">
-        {counter!== null && <div>Spinning in {counter} seconds...</div>}
-        <div>The number is: {number}</div>
-        <div>Your stack: {stack}</div>
-        <div className="betOverlay">
-          Place your bet:
-          {[...Array(36)].map((_, i) => (
-            <div key={i}>
-              {i + 1}
-              <input
-                type="number"
-                min="0"
-                onChange={(e) => {
-                  e.preventDefault(); // Prevent the default action
-
-                  // Extract the current input value
-                  const currentValue = Number(e.target.value);
-
-                  // Check if the current value exceeds the stack
-                  if (currentValue > stack) {
-                    // If it does, set the input value to the stack
-                    e.target.value = stack.toString();
-                  }
-
-                  // Proceed with the rest of your logic
-                  if (stack >= currentValue) {
-                    placeBet(i + 1, currentValue);
-                  } else {
-                    window.alert("You do not have enough money.");
-                  }
-                }}
-              />
+    <div className="board">
+      {counter!== null && <div>Spinning in {counter} seconds...</div>}
+      <div>The number is: {number}</div>
+      <div>Your stack: {stack}</div>
+      <div className="parentOverlay">
+        <div className="mainOverlay">
+          <div className="greencell">0</div>
+          {Array.from({ length: 36 }, (_, i) => i + 1).map((number) => (
+            <div key={number} className={`cell ${getColor(number)}`}>
+              {number}
             </div>
           ))}
-          <div>
-            {"Even"}
+        </div>
+        <div className="rightOverlay"></div>
+      </div>
+      <div className="betOverlay">
+        Place your bet:
+        {[...Array(36)].map((_, i) => (
+          <div key={i}>
+            <div>{i + 1}</div>
             <input
               type="number"
               min="0"
               onChange={(e) => placeBet("even", Number(e.target.value))}
             />
+            <div>
+              Odd
+              <input
+                type="number"
+                onChange={(e) => placeBet("odd", Number(e.target.value))}
+              />
+            </div>
+            {/* Add more buttons for other bets */}
           </div>
-          <div>
-            {"Odd"}
-            <input
-              type="number"
-              onChange={(e) => placeBet("odd", Number(e.target.value))}
-            />
-          </div>
-          {/* Add more buttons for other bets */}
-        </div>
+        ))}
         <form onSubmit={(e) => {
           e.preventDefault();
           const messageInput = document.getElementById('messageInput') as HTMLInputElement;
@@ -184,7 +173,7 @@ function Roulette() {
           <p key={index}>{msg}</p>
         ))}
       </div>
-    </>
+    </div>
   );
 }
 

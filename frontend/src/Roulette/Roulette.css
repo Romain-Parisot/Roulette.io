@@ -23,3 +23,77 @@
 .boardimage img {
   width: 100%;
 }
+
+.green {
+  background-color: green;
+}
+
+.red {
+  background-color: red;
+}
+
+.black {
+  background-color: black;
+}
+
+.parentOverlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.leftOverlay {
+  width: 50px;
+  height: 150px;
+  background-color: green;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  box-sizing: border-box;
+}
+
+.mainOverlay {
+  display: grid;
+  grid-template-columns: repeat(13, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+.rightOverlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+}
+
+.parentOverlay {
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  height: 50px;
+  box-sizing: border-box;
+  border: 1px solid white;
+}
+
+.greencell {
+  background-color: green;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  height: 150px;
+  grid-row: 1 / 4;
+  box-sizing: border-box;
+
+  border: 1px solid white;
+}
