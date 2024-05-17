@@ -137,3 +137,16 @@
   align-items: center;
   justify-content: center;
 }
+
+.ChatBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  background-color: rgba(0, 0, 0, 0.293);
+  padding: 20px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}

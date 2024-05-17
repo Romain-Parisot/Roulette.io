@@ -255,25 +255,31 @@ function Roulette() {
           100
         </div>
       </div>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const messageInput = document.getElementById(
-            "messageInput"
-          ) as HTMLInputElement;
-          if (roomName) {
-            sendMessage(roomName, messageInput.value);
-            messageInput.value = "";
-          }
-        }}
-      >
-        <input id="messageInput" type="text" placeholder="Type a message..." />
-        <button type="submit">Send</button>
-      </form>
-      <div className="chat">
-        {messages.map((msg, index) => (
-          <p key={index}>{msg}</p>
-        ))}
+      <div className="ChatBox">
+        <div className="chat">
+          {messages.map((msg, index) => (
+            <p key={index}>{msg}</p>
+          ))}
+        </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const messageInput = document.getElementById(
+              "messageInput"
+            ) as HTMLInputElement;
+            if (roomName) {
+              sendMessage(roomName, messageInput.value);
+              messageInput.value = "";
+            }
+          }}
+        >
+          <input
+            id="messageInput"
+            type="text"
+            placeholder="Type a message..."
+          />
+          <button type="submit">Send</button>
+        </form>
       </div>
     </div>
   );

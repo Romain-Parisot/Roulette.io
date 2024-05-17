@@ -52,32 +52,32 @@ io.on("connection", (socket) => {
       console.log(`Room ${room} is full.`);
       return;
     }
-    if(usersInRooms[room]?.find(user => user.username === username)) {
+    if (usersInRooms[room]?.find((user) => user.username === username)) {
       console.log(`Username ${username} is already taken in room ${room}.`);
       return;
     }
-    if(username === undefined) {
+    if (username === undefined) {
       console.log("Username is undefined.");
       return;
     }
     socket.join(room);
     console.log("room: " + room);
     socket.emit("roomJoined", room);
-  
+
     // Emit the list of users in the room to the newly joined user
     const users = usersInRooms[room]?.slice() || [];
     io.to(room).emit("usersList", users);
-  
+
     // Update the global usersInRooms object
     if (!usersInRooms[room]) {
       usersInRooms[room] = [{ id: socket.id, username }];
     } else {
       usersInRooms[room].push({ id: socket.id, username });
     }
-  
+
     // Emit the updated list of users to all users in the room
     io.to(room).emit("updatedUsersList", usersInRooms[room]);
-  
+
     // Handle requests to get the current list of users in a room
     socket.on("getUsersList", (room) => {
       const users = usersInRooms[room]?.slice() || [];
