@@ -97,12 +97,29 @@ function Roulette() {
     // Proceed with placing the bet if the stack is sufficient
     setBet({ number: newBet, amount: amount });
   };
+  function getColor(number: number) {
+    const redNumbers = [
+      1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36,
+    ];
+    return redNumbers.includes(number) ? "red" : "black";
+  }
 
   return (
     <div className="board">
       {counter !== null && <div>Spinning in {counter} seconds...</div>}
       <div>The number is: {number}</div>
       <div>Your stack: {stack}</div>
+      <div className="parentOverlay">
+        <div className="mainOverlay">
+          <div className="greencell">0</div>
+          {Array.from({ length: 36 }, (_, i) => i + 1).map((number) => (
+            <div key={number} className={`cell ${getColor(number)}`}>
+              {number}
+            </div>
+          ))}
+        </div>
+        <div className="rightOverlay"></div>
+      </div>
       <div className="betOverlay">
         Place your bet:
         {[...Array(36)].map((_, i) => (
