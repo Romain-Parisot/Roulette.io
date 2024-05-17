@@ -61,20 +61,40 @@ function Roulette() {
     });
   }, []);
 
+  const betsRef = useRef(bets);
+  useEffect(() => {
+    betsRef.current = bets;
+  }, [bets]);
+
   const spinWheel = () => {
     socketRef.current.emit("spinWheel", roomName);
     socketRef.current.on("rouletteSpinResult", (newNumber: number) => {
       console.log("rouletteSpinResult", newNumber);
       setNumber(newNumber);
 
-      bets.forEach((bet) => {
-        if (bet.number === newNumber) {
-          setStack((prevStack) => prevStack + bet.amount * 36);
-        } else if (
-          (bet.number === "even" && newNumber % 2 === 0) ||
-          (bet.number === "odd" && newNumber % 2 !== 0)
-        ) {
-          setStack((prevStack) => prevStack + bet.amount * 2);
+      const redNumbers = [
+        1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36,
+      ];
+      const blackNumbers = [
+        2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35,
+      ];
+
+      betsRef.current.forEach((bet) => {
+        if (bets.includes(bet)) {
+          // Add this line
+          if (bet.number === newNumber) {
+            setStack((prevStack) => prevStack + bet.amount * 36);
+          } else if (
+            (bet.number === "even" && newNumber % 2 === 0) ||
+            (bet.number === "odd" && newNumber % 2 !== 0)
+          ) {
+            setStack((prevStack) => prevStack + bet.amount * 2);
+          } else if (
+            (bet.number === "red" && redNumbers.includes(newNumber)) ||
+            (bet.number === "black" && blackNumbers.includes(newNumber))
+          ) {
+            setStack((prevStack) => prevStack + bet.amount * 2);
+          }
         }
       });
 
@@ -82,6 +102,10 @@ function Roulette() {
       setBets([]);
     });
   };
+
+  useEffect(() => {
+    console.log("after reset bets" + bets);
+  }, [bets]);
 
   useEffect(() => {
     if (counter === 0) {
@@ -105,7 +129,7 @@ function Roulette() {
     return redNumbers.includes(number) ? "red" : "black";
   }
 
-  const handleCellClick = (number: number) => {
+  const handleCellClick = (number: number | string) => {
     // Check if the user has enough stack to place the bet
     if (betAmount === undefined || stack < betAmount) {
       return;
@@ -179,7 +203,40 @@ function Roulette() {
             </div>
           ))}
         </div>
-        <div className="rightOverlay"></div>
+        <div className="sideOverlay">
+          <div className="cell green" onClick={() => handleCellClick("even")}>
+            Even
+            {bets.find((bet) => bet.number === "even") && (
+              <div className="token">
+                {bets.find((bet) => bet.number === "even")?.amount || ""}
+              </div>
+            )}
+          </div>
+          <div className="cell red" onClick={() => handleCellClick("red")}>
+            Red
+            {bets.find((bet) => bet.number === "red") && (
+              <div className="token">
+                {bets.find((bet) => bet.number === "red")?.amount || ""}
+              </div>
+            )}
+          </div>
+          <div className="cell black" onClick={() => handleCellClick("black")}>
+            Black
+            {bets.find((bet) => bet.number === "black") && (
+              <div className="token">
+                {bets.find((bet) => bet.number === "black")?.amount || ""}
+              </div>
+            )}
+          </div>
+          <div className="cell green" onClick={() => handleCellClick("odd")}>
+            Odd
+            {bets.find((bet) => bet.number === "odd") && (
+              <div className="token">
+                {bets.find((bet) => bet.number === "odd")?.amount || ""}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
       <div className="tokenOverlay">
         <div className="token2" onClick={() => handleTokenClick(1)}>

@@ -40,6 +40,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
 }
 
 .leftOverlay {
@@ -129,4 +130,10 @@
   justify-content: center;
   color: white;
   cursor: pointer;
+}
+
+.sideOverlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
