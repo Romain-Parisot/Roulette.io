@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
 import "./Roulette.css";
 
 // Import socket.io-client
@@ -7,6 +8,7 @@ import io from "socket.io-client";
 const BACKEND_URL = "http://localhost:3000"; // Update this URL to match your backend server
 
 function Roulette() {
+  let { roomName } = useParams<{ roomName?: string }>();
   const [bet, setBet] = useState<{ number: number | string; amount: number }>({
     number: 0,
     amount: 0,
@@ -19,19 +21,19 @@ function Roulette() {
   const counterIntervalRef = useRef<NodeJS.Timeout>();
 
   // Create a ref to hold the socket connection
-  const socketRef = useRef();
+  const socketRef = useRef<any>();
 
   // Function to initialize the socket connection
   const initSocket = () => {
     socketRef.current = io(BACKEND_URL);
-    socketRef.current.on("rouletteSpinResult", (newNumber) => {
+    socketRef.current.on("rouletteSpinResult", (newNumber: number) => {
       console.log("rouletteSpinResult");
       setNumber(newNumber);
     });
-    socketRef.current.on("roomJoined", (roomName) => {
+    socketRef.current.on("roomJoined", (roomName: string) => {
       console.log(`Joined room: ${roomName}`);
     });
-    socketRef.current.emit("join", "Room1");
+    socketRef.current.emit("join", roomName);
 
     // Clean up the socket connection when the component unmounts
     return () => {
@@ -49,8 +51,8 @@ function Roulette() {
   }, []);
 
   const spinWheel = () => {
-    socketRef.current.emit("spinWheel", "Room1");
-    socketRef.current.on("rouletteSpinResult", (newNumber) => {
+    socketRef.current.emit("spinWheel", roomName);
+    socketRef.current.on("rouletteSpinResult", (newNumber: number) => {
       console.log("rouletteSpinResult", newNumber);
       setNumber(newNumber);
     });
@@ -71,11 +73,11 @@ function Roulette() {
   useEffect(() => {
     if (counter === 0) {
       spinWheel();
-      socketRef.current.emit("updateCounter", "Room1", counter);
+      socketRef.current.emit("updateCounter", roomName, counter);
     }
     counterIntervalRef.current = setInterval(() => {
-      socketRef.current.emit("updateCounter", "Room1", counter);
-      socketRef.current.on("counterUpdated", (counter) => {
+      socketRef.current.emit("updateCounter", roomName, counter);
+      socketRef.current.on("counterUpdated", (counter: number) => {
         console.log("counterUpdated", counter);
         setCounter(counter);
       });
