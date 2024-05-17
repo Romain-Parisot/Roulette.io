@@ -1,5 +1,9 @@
 .App {
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  height: 100vh;
 }
 
 .App-logo {
@@ -12,6 +16,27 @@
   padding: 30px;
   border: 1px solid #ccc;
   width: 100px;
+}
+
+.button {
+  display: inline-block;
+  padding: 10px 20px;
+  font-size: 20px;
+  text-align: center;
+  text-decoration: none;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: #0056b3;
+}
+
+.button:active {
+  background-color: #004085;
 }
 
 @media (prefers-reduced-motion: no-preference) {
