@@ -4,7 +4,7 @@ import io from "socket.io-client";
 import { Link } from "react-router-dom";
 import "./App.css";
 
-const socket = io("http://localhost:3000");
+const socket = io("https://roulette-io.onrender.com");
 
 function App() {
   const joinRoom = (roomName: string) => {
